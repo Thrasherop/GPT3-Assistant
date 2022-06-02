@@ -6,13 +6,26 @@ from googlecontroller import GoogleAssistant
 
 from flask import Flask
 import threading
+from time import sleep
 
 # Establish connection to Google Home
 host = "10.0.0.73"
 home = GoogleAssistant(host=host)
 
+use_open_tunnel = True
+
+#home.say("Hello, I am your personal assistant. How can I help you?")
+
+#home.serve_media("BachGavotteShort.mp3", "./", opentunnel=0)
 
 def play_keyword(keyword):
+
+    global use_open_tunnel
+
+    ##home.serve_media("BachGavotteShort.mp3", "./", opentunnel=0)
+
+    print("play keyword called")
+    log("play keyword called")
 
     keyword = keyword.replace(" ", "_")
 
@@ -31,12 +44,24 @@ def play_keyword(keyword):
     yt = YouTube(url)
     yt.streams.filter(progressive=True, file_extension='mp4').first().download(filename="output.mp4")
 
+    print("attempting to play")
     # Finally, play the file
-    home.serve_media("output.mp4","./", opentunnel=0)
+    if use_open_tunnel:
+        print("using open tunner")
+        log("use open tunnel")
+        home.serve_media("output.mp4","./", opentunnel=0) # , opentunnel=0)
+        use_open_tunnel=False
+    else:
+        print("not using open tunnel")
+        home.serve_media("output.mp4","./")
+    log("finished")
     #home.volume(100)
 
 #play_keyword("can't hold us")
 
+def log(message):
+    with open("log.txt", "a") as logfile:
+        logfile.write(message + "\n")
 
 port = 21000
 debug = True
@@ -51,11 +76,17 @@ def hello():
 
 @app.route("/dj/<prompt>")
 def dj(prompt):
-    print("dj")
+    print("dj called")
+    log("dj called but new")
+    print(prompt)
+    print(prompt)
     play_keyword(prompt)
-    # x = threading.Thread(target=play_keyword, args=(prompt,))
-    # x.start()
+    #play_keyword("can't hold us")
     return "Playing"
 
+
+
 if __name__ == "__main__":
+    #sleep(5) # sleep to make sure it has console priority
+    print("running")
     app.run(host=fhost, port=port, debug=debug)
