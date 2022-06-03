@@ -1,0 +1,3 @@
+# GPT3 config
+
+PHILO_MAX_TOKENS = 500

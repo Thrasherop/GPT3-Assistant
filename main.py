@@ -8,11 +8,18 @@ from flask import Flask
 import threading
 from time import sleep
 
+from src.GPT3Interface import GPT3
+
 # Establish connection to Google Home
 host = "10.0.0.73"
 home = GoogleAssistant(host=host)
 
 use_open_tunnel = True
+
+
+# Create gpt3 interface object
+gpt3 = GPT3()
+
 
 #home.say("Hello, I am your personal assistant. How can I help you?")
 
@@ -80,7 +87,55 @@ def dj(prompt):
     log("dj called but new")
     print(prompt)
     print(prompt)
-    play_keyword(prompt)
+
+
+    # Gets GPT-3's recommendation
+    print("seeking gpt3")
+    gpt3_response = gpt3.ask_dj(prompt)
+    print(gpt3_response)
+    play_keyword(gpt3_response)
+
+    #play_keyword(prompt)
+    #play_keyword("can't hold us")
+    return "Playing"
+
+@app.route("/philosopher/<prompt>")
+def philosopher(prompt):
+    print("philosopher called")
+    print(prompt)
+
+    # Gets GPT-3's recommendation
+    print("seeking gpt3")
+    gpt3_response = gpt3.ask_philosopher(prompt)
+    print(gpt3_response)
+
+    phrase="hellllo world. I need to make this longer so I shall. Once upon a time"
+
+    if len(phrase) > 265:
+        print("Forced to trim message")
+        phrase = phrase[:240] + " !!! Out of space"
+
+    
+    home.say(gpt3_response)
+
+    print("home finished")
+
+    #play_keyword(prompt)
+    #play_keyword("can't hold us")
+    return "Playing"
+
+@app.route("/james/<prompt>")
+def james(prompt):
+    print("james called")
+    print(prompt)
+
+    # Gets GPT-3's recommendation
+    print("seeking gpt3")
+    gpt3_response = gpt3.ask_james(prompt)
+    print(gpt3_response)
+    home.say(gpt3_response)
+
+    #play_keyword(prompt)
     #play_keyword("can't hold us")
     return "Playing"
 
