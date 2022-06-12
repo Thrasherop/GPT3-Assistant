@@ -38,17 +38,17 @@ def generate_speak(text):
 
     text_to_speech.set_service_url('https://api.us-south.text-to-speech.watson.cloud.ibm.com/instances/d480862a-60ee-45e1-a585-8e640d85efff')
 
-    with open(config.PHILO_FILE,'wb') as audio_file:
+    with open(config.PHILO_FULL_PATH,'wb') as audio_file:
         audio_file.write(text_to_speech.synthesize(text,voice=config.PHILO_VOICE,accept='audio/mp3').get_result().content)
 
-def play_keyword(keyword):
+def play_keyword(keyword, has_recursed=False):
 
     global use_open_tunnel
 
     ##home.serve_media("BachGavotteShort.mp3", "./", opentunnel=0)
 
     print("play keyword called")
-    log("play keyword called")
+    #log("play keyword called")
 
     keyword = keyword.replace(" ", "_")
 
@@ -56,6 +56,17 @@ def play_keyword(keyword):
     results = YoutubeSearch(keyword, max_results=1).to_dict() # .to_json()
 
     print(results)
+
+    if len(results) == 0 and has_recursed == False:
+        print("DJ query returned empty. Trying again")
+        play_keyword(keyword, has_recursed=True)
+    elif len(results) == 0 and has_recursed == True:
+        print("DJ query returned empty. Giving up")
+        generate_speak("I'm sorry, I couldn't find anything for you. Please try again, or use a different description.")
+        return
+    else:
+        print("Results successful! ")
+    
 
     print(results[0]['url_suffix'])
 
@@ -65,19 +76,19 @@ def play_keyword(keyword):
 
     # download mp3 of the url using pytube and output as "output.mp3"
     yt = YouTube(url)
-    yt.streams.filter(progressive=True, file_extension='mp4').first().download(filename="output.mp4")
+    yt.streams.filter(progressive=True, file_extension='mp4').first().download(filename=config.DJ_FILE)#"output.mp4")
 
     print("attempting to play")
     # Finally, play the file
     if use_open_tunnel:
         print("using open tunner")
-        log("use open tunnel")
-        home.serve_media("output.mp4","./", opentunnel=0) # , opentunnel=0)
+        #log("use open tunnel")
+        home.serve_media(config.DJ_FILE,config.DJ_PATH, opentunnel=0) # , opentunnel=0)
         use_open_tunnel=False
     else:
         print("not using open tunnel")
-        home.serve_media("output.mp4","./")
-    log("finished")
+        home.serve_media(config.DJ_FILE,config.DJ_PATH,)#"output.mp4","./")
+    #log("finished")
     #home.volume(100)
 
 #play_keyword("can't hold us")
@@ -100,7 +111,7 @@ def hello():
 @app.route("/dj/<prompt>")
 def dj(prompt):
     print("dj called")
-    log("dj called but new")
+    #log("dj called but new")
     print(prompt)
     print(prompt)
 
@@ -144,13 +155,13 @@ def philosopher(prompt):
 
     if use_open_tunnel:
         print("using open tunner")
-        log("use open tunnel")
-        home.serve_media(config.PHILO_FILE,"./", opentunnel=0) # , opentunnel=0)
+        #log("use open tunnel")
+        home.serve_media(config.PHILO_FILE,config.PHILO_PATH, opentunnel=0) # , opentunnel=0)
         use_open_tunnel=False
     else:
         print("not using open tunnel")
-        home.serve_media(config.PHILO_FILE,"./")
-        log("finished")
+        home.serve_media(config.PHILO_FILE,config.PHILO_PATH)
+        #log("finished")
 
     print("speak sent finished")
  
