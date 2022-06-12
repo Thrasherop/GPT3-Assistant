@@ -76,3 +76,7 @@ finished
 dj called but new
 play keyword called
 finished
+dj called but new
+play keyword called
+use open tunnel
+finished
