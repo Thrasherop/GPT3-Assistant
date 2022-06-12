@@ -2,6 +2,9 @@ from youtube_search import YoutubeSearch
 from pytube import YouTube
 import os
 
+from ibm_watson import TextToSpeechV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+
 from googlecontroller import GoogleAssistant
 
 from flask import Flask
@@ -9,6 +12,8 @@ import threading
 from time import sleep
 
 from src.GPT3Interface import GPT3
+
+from configs import secrets, config
 
 # Establish connection to Google Home
 host = "10.0.0.73"
@@ -24,6 +29,17 @@ gpt3 = GPT3()
 #home.say("Hello, I am your personal assistant. How can I help you?")
 
 #home.serve_media("BachGavotteShort.mp3", "./", opentunnel=0)
+
+def generate_speak(text):
+    authenticator = IAMAuthenticator(secrets.IBM)
+    text_to_speech = TextToSpeechV1(
+        authenticator=authenticator
+    )
+
+    text_to_speech.set_service_url('https://api.us-south.text-to-speech.watson.cloud.ibm.com/instances/d480862a-60ee-45e1-a585-8e640d85efff')
+
+    with open(config.PHILO_FILE,'wb') as audio_file:
+        audio_file.write(text_to_speech.synthesize(text,voice=config.PHILO_VOICE,accept='audio/mp3').get_result().content)
 
 def play_keyword(keyword):
 
@@ -101,6 +117,9 @@ def dj(prompt):
 
 @app.route("/philosopher/<prompt>")
 def philosopher(prompt):
+
+    global use_open_tunnel
+
     print("philosopher called")
     print(prompt)
 
@@ -109,17 +128,32 @@ def philosopher(prompt):
     gpt3_response = gpt3.ask_philosopher(prompt)
     print(gpt3_response)
 
-    phrase="hellllo world. I need to make this longer so I shall. Once upon a time"
+    #phrase="hellllo world. I need to make this longer so I shall. Once upon a timeWhen I talk about this and other such things as food/drink/exercise/sleep as causing either deep or illusory pleasures , my point is not just simply appreciating these things on aggregate; rather, these activities lead us into deeper joys from experiencing them at each moment . So 'Pleasure' isn't an abstract theoretical property: Pleasure isn't even something with which cognitive agents are concerned (although they could be interested towards calculative pursuits), but instead a quality of experience – the impact derived by selves out of instigating self-enhancement processes within themselves"
+    # phrase="hellllo world. I need to make this longer so I shall. Once upon a timeWhen I talk about this and other such things a"
 
-    if len(phrase) > 265:
-        print("Forced to trim message")
-        phrase = phrase[:240] + " !!! Out of space"
+    # if len(phrase) > 265:
+    #     print("Forced to trim message")
+    #     phrase = phrase[:240] + " !!! Out of space"
 
     
-    home.say(gpt3_response)
+    #home.say(phrase)
 
-    print("home finished")
+    print("generating speak")
+    
+    generate_speak(gpt3_response)
 
+    if use_open_tunnel:
+        print("using open tunner")
+        log("use open tunnel")
+        home.serve_media(config.PHILO_FILE,"./", opentunnel=0) # , opentunnel=0)
+        use_open_tunnel=False
+    else:
+        print("not using open tunnel")
+        home.serve_media(config.PHILO_FILE,"./")
+        log("finished")
+
+    print("speak sent finished")
+ 
     #play_keyword(prompt)
     #play_keyword("can't hold us")
     return "Playing"
@@ -139,7 +173,9 @@ def james(prompt):
     #play_keyword("can't hold us")
     return "Playing"
 
-
+# print("generating voice")
+# speak("Hello, I am your personal assistant. How can I help you?")
+# print("speak done")
 
 if __name__ == "__main__":
     #sleep(5) # sleep to make sure it has console priority

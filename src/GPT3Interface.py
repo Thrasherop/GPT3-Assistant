@@ -39,14 +39,14 @@ class GPT3:
     def ask_philosopher(self, prompt):
 
         request = openai.Completion.create(
-            engine="curie",
+            engine="davinci",
             temperature=0.9,
             prompt=self._philosopher_prompt.replace("{!!!}", prompt),
             presence_penalty=1,
             frequency_penalty=1,
             max_tokens=PHILO_MAX_TOKENS,
             best_of=1,
-            stop=["Philosopher AI:", "\n\n\n"] # , "\"\n", "\n\""]
+            stop=["Philosopher AI:", "Human:", "human:" ,"\n\n\n"] # , "\"\n", "\n\""]
         )
 
         print("GPT3.ask_philosopher request: ", request)
